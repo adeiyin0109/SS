@@ -1,5 +1,5 @@
 import userModel from "../model/userModel.js"
-
+import bcrypt from "bcrypt"
 /**
  * CRUD
  * CREATE USER (POST)
