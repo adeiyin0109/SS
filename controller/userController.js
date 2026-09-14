@@ -10,9 +10,11 @@ import bcrypt from "bcrypt"
 //CREATE USER(POST)
 export const createUser = async (req, res) => {
     try {
-        const { name, email, RegNo } = req.body;
+        const { name, email, password } = req.body
+        const genSalt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(password, genSalt)
         const user = await userModel.create({
-             name, email, RegNo
+             name, email, password: hashedPassword
              });
         return res.status(201).json({ 
             message: "User created successfully",  
@@ -23,7 +25,31 @@ export const createUser = async (req, res) => {
     }
 };
 
-//GENERAL GET:
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await userModel.findOne({ email })
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                message: "Invalid password"
+            });
+        }
+        return res.status(200).json({
+            message: "Login successful",
+            Data: user
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message
+        });
+    }
+}
  
 
 //UPDATE USER:
@@ -47,6 +73,20 @@ export const getSingleUser = async (req, res) => {
             });
     }
 };
+
+export const getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find();
+        return res.status(200).json({ 
+            message: "Users retrieved successfully",  
+            Data : users
+        });
+    } catch (error) {
+        return res.status(500).json({
+             message: error.message 
+            });
+    }
+}
 
 //UPDATE USER:
 export const updateUser = async (req, res) => {
